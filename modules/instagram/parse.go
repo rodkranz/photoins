@@ -6,7 +6,7 @@ import (
 	"regexp"
 )
 
-func ParseData(b []byte) ([]byte, error) {
+func ParseJsonData(b []byte) ([]byte, error) {
 	var bs []byte
 
 	reg, err := regexp.Compile("window._sharedData =(.*);</script>")

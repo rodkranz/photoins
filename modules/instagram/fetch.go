@@ -3,14 +3,19 @@ package instagram
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
-	"github.com/rodkranz/test/module/config"
-	"io/ioutil"
+	"errors"
+	"github.com/rodkranz/photoins/modules/setting"
 )
 
 func FetchFromTag(tag string) (b []byte, err error) {
-	r, err := http.Get(fmt.Sprintf(config.URI_INSTAGRAM_TAG, tag))
+	if len(tag) == 0 {
+		return b, errors.New("Tag cannot be empty")
+	}
+
+	r, err := http.Get(fmt.Sprintf(setting.UrlInstagram, tag))
 	if err != nil {
 		return
 	}
