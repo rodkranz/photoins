@@ -4,108 +4,61 @@
 package cmd
 
 import (
-	"gopkg.in/urfave/cli.v2"
+	"errors"
+	"fmt"
 
-	"github.com/rodkranz/photoins/router"
-	"github.com/rodkranz/photoins/models"
-	"github.com/rodkranz/photoins/modules/verify"
+	"github.com/urfave/cli"
+
 	"github.com/rodkranz/photoins/modules/instagram"
+	"github.com/rodkranz/photoins/modules/verify"
+	"github.com/rodkranz/photoins/router"
 )
 
-var Import = &cli.Command{
+var Import = cli.Command{
 	Name:        "service",
 	Usage:       "Run Import",
 	Description: `Start Import images from instagram.`,
 	Action:      runImport,
-	Flags:       []cli.Flag{
-
+	Flags: []cli.Flag{
+		stringFlag("tag", "", "the tag name to import"),
 	},
 }
 
 func runImport(ctx *cli.Context) error {
+	if !ctx.IsSet("tag") {
+		return errors.New("Tag is not specified.")
+	}
+
 	routers.GlobalInit()
 	verify.CheckVersion()
 
 	tag := ctx.String("tag")
-	b, err := instagram.FetchFromTag(tag)
-	if err != nil {
-		return err
+	ir := instagram.ImportTag(tag)
+	if ir.Err != nil {
+		return ir.Err
 	}
 
-	b, err = instagram.ParseJsonData(b)
-	if err != nil {
-		return err
-	}
+	layout := `
+The tag #%s.
 
-	obj := new(instagram.Data)
-	err = obj.Parser(b)
-	if err != nil {
-		return err
-	}
+Total of new images         : %d
+Total of images updated     : %d
+Total of error new images   : %d
+Total of error update images: %d
 
-	for _, tagsPage := range obj.Data.TagPages {
-		tagModel, err := persistTagData(obj.CountryCode, tagsPage.Tags)
-		if err != nil {
-			return err
-		}
+Error: %v
 
-		for _, node := range tagsPage.Tags.Media.Nodes {
-			err := persistNodeData(tagModel, node)
-			if err != nil {
-				return err
-			}
-		}
-	}
+`
 
-	ctx.App.Writer.Write([]byte("Imported!"))
+	fmt.Fprintf(ctx.App.Writer,
+		layout,
+		tag,
+		len(ir.NewImages),
+		len(ir.EditImages),
+		len(ir.NewImagesErr),
+		len(ir.EditImagesErr),
+		ir.Err,
+	)
+
 	return nil
-}
-
-func persistTagData(countryCode string, tags instagram.Tag) (*models.Tag, error) {
-	tagModel, err := models.GetTagByName(tags.Name)
-	if models.IsErrTagNotExist(err) {
-		tagModel = &models.Tag{Name: tags.Name, Count: tags.Media.Count, Country: countryCode}
-		if err := models.CreateTag(tagModel); err != nil {
-			return nil, err
-		}
-
-		return tagModel, nil
-	}
-
-	tagModel.Count = tags.Media.Count
-	if err := models.UpdateTag(tagModel); err != nil {
-		return nil, err
-	}
-
-	return tagModel, nil
-}
-
-func persistNodeData(tag *models.Tag, data instagram.Node) error {
-	img, err := models.GetImageByInstagramID(data.Id)
-	if err != nil && models.IsErrImageNotExist(err) {
-		img = &models.Image{}
-	}
-
-	img.InstagramID = data.Id
-	img.DisplaySrc = data.DisplaySrc
-	img.ThumbnailSrc = data.ThumbnailSrc
-	img.IsVideo = data.IsVideo
-	img.Code = data.Code
-	//img.Date = data.Date
-	img.Caption = data.Caption
-	img.TagID = tag.ID
-	img.TagName = tag.Name
-	img.Height = data.Dimensions.Height
-	img.Width = data.Dimensions.Width
-	img.Owner = data.Owner.Id
-	img.Comments = data.Comments.Count
-	img.Likes = data.Likes.Count
-
-	if img.ID != 0 {
-		// Update
-		return models.UpdateImage(img)
-	}
-
-	// Create new
-	return models.CreateImage(img)
 }

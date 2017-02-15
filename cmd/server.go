@@ -18,8 +18,8 @@ import (
 	"github.com/go-macaron/gzip"
 	"github.com/go-macaron/i18n"
 	"github.com/go-macaron/session"
+	"github.com/urfave/cli"
 	"gopkg.in/macaron.v1"
-	"gopkg.in/urfave/cli.v2"
 
 	"github.com/rodkranz/photoins/modules/bindata"
 	"github.com/rodkranz/photoins/modules/context"
@@ -33,7 +33,7 @@ import (
 	routerWeb "github.com/rodkranz/photoins/router/web"
 )
 
-var Server = &cli.Command{
+var Server = cli.Command{
 	Name:        "server",
 	Usage:       "Run Server",
 	Description: `Start server.`,

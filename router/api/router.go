@@ -5,7 +5,6 @@ package api
 
 import (
 	"gopkg.in/macaron.v1"
-	//"github.com/go-macaron/binding"
 
 	"github.com/rodkranz/photoins/modules/context"
 	"github.com/rodkranz/photoins/router/api/v1/instagram"
@@ -37,6 +36,7 @@ func RegisterRoutes(m *macaron.Macaron) {
 
 		m.Get("/image/search", instagram.Search)
 		m.Get("/image/:instagramId", instagram.GetInfoImageByInstagramId)
+		m.Get("/image/import/tag/:tag", instagram.ImportByTag)
 
 	}, context.APIContexter())
 }

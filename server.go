@@ -7,7 +7,7 @@ import (
 	"os"
 	"runtime"
 
-	"gopkg.in/urfave/cli.v2"
+	"github.com/urfave/cli"
 
 	"github.com/rodkranz/photoins/cmd"
 	"github.com/rodkranz/photoins/modules/setting"
@@ -25,7 +25,7 @@ func main() {
 		Name:    "PhotoIns",
 		Usage:   "Instagram photo by tag",
 		Version: VER,
-		Commands: []*cli.Command{
+		Commands: []cli.Command{
 			cmd.Server,
 			cmd.Import,
 		},

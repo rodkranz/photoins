@@ -27,7 +27,7 @@ func (d *Data) String() string {
 
 type Config struct {
 	CsrfToken string `json:"csrf_token"`
-	Viewer struct {
+	Viewer    struct {
 		ExternalUrl     string `json:"external_url"`
 		ProfilePicUrl   string `json:"profile_pic_url"`
 		FullName        string `json:"full_name"`
@@ -57,8 +57,8 @@ type TopPosts struct {
 }
 
 type Media struct {
-	Nodes []Node `json:"nodes"`
-	Count int64  `json:"count"`
+	Nodes    []Node `json:"nodes"`
+	Count    int64  `json:"count"`
 	PageInfo struct {
 		HasNextPage bool   `json:"has_next_page"`
 		EndCursor   string `json:"end_cursor"`
@@ -66,7 +66,7 @@ type Media struct {
 }
 
 type Node struct {
-	Id               string  `json:"id"`
+	Id               string `json:"id"`
 	ThumbnailSrc     string `json:"thumbnail_src"`
 	IsVideo          bool   `json:"is_video"`
 	Code             string `json:"code"`

@@ -4,13 +4,13 @@ package models
 import (
 	"time"
 
+	"fmt"
 	"github.com/go-xorm/xorm"
 	"strings"
-	"fmt"
 )
 
 type Image struct {
-	ID          int64 `xorm:"pk autoincr"`
+	ID          int64  `xorm:"pk autoincr"`
 	InstagramID string `xorm:"VARCHAR(255) INDEX NOT NULL"`
 
 	DisplaySrc   string `xorm:"VARCHAR(255)"`
@@ -19,19 +19,22 @@ type Image struct {
 	IsVideo bool   `xorm:"BOOL"`
 	Code    string `xorm:"VARCHAR(100)"`
 
-	Date time.Time `xorm:"DATE"`
+	Date     time.Time `xorm:"-"`
+	DateUnix int64
 
 	Caption string `xorm:"TEXT"`
 
-	TagID   int64 `xorm:"INDEX NOT NULL"`
-	TagName string`xorm:"VARCHAR(255) NOT NULL"`
+	TagID   int64  `xorm:"INDEX NOT NULL"`
+	TagName string `xorm:"VARCHAR(255) NOT NULL"`
 
 	Height int64 `xorm:"INT"`
 	Width  int64 `xorm:"INT"`
 
 	Owner    string `xorm:"VARCHAR(255)"`
-	Comments int64 `xorm:"INT"`
-	Likes    int64 `xorm:"INT"`
+	Comments int64  `xorm:"INT"`
+	Likes    int64  `xorm:"INT"`
+
+	IsNew bool `xorm:"-"`
 
 	Created     time.Time `xorm:"-"`
 	CreatedUnix int64
@@ -118,6 +121,7 @@ type SearchImageOptions struct {
 	Tag      string
 	Page     int
 	PageSize int
+	OrderBy  string
 }
 
 func SearchImage(opts *SearchImageOptions) (images []*Image, _ int64, _ error) {
@@ -129,7 +133,7 @@ func SearchImage(opts *SearchImageOptions) (images []*Image, _ int64, _ error) {
 		opts.Page = 1
 	}
 
-	if len(opts.Keyword) == 0 {
+	if len(opts.Keyword) == 0 && len(opts.Tag) == 0 {
 		images, err := Images(opts.Page, opts.PageSize)
 		return images, CountImages(), err
 	}
@@ -140,13 +144,27 @@ func SearchImage(opts *SearchImageOptions) (images []*Image, _ int64, _ error) {
 	images = make([]*Image, 0, opts.PageSize)
 
 	// Append conditions
-	sess := x.Where("LOWER(caption) LIKE ?", searchQuery)
+	sess := x.NewSession()
+
+	if len(opts.Keyword) != 0 {
+		sess.Where("LOWER(caption) LIKE ?", searchQuery)
+	}
+
+	if len(opts.Tag) != 0 {
+		sess.Where("LOWER(tag_name) = ?", strings.ToLower(opts.Tag))
+	}
 
 	var countSess xorm.Session
 	countSess = *sess
 	count, err := countSess.Count(new(Image))
 	if err != nil {
 		return nil, 0, fmt.Errorf("Count: %v", err)
+	}
+
+	if len(opts.OrderBy) > 0 {
+		sess.OrderBy(opts.OrderBy)
+	} else {
+		sess.OrderBy("instagram_id DESC")
 	}
 
 	return images, count, sess.Limit(opts.PageSize, (opts.Page-1)*opts.PageSize).Find(&images)
