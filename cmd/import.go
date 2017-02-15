@@ -12,17 +12,17 @@ import (
 	"github.com/rodkranz/photoins/modules/instagram"
 )
 
-var Service = &cli.Command{
+var Import = &cli.Command{
 	Name:        "service",
-	Usage:       "Run Service",
-	Description: `Start Service that fetch data from instagram.`,
-	Action:      runService,
+	Usage:       "Run Import",
+	Description: `Start Import images from instagram.`,
+	Action:      runImport,
 	Flags:       []cli.Flag{
 
 	},
 }
 
-func runService(ctx *cli.Context) error {
+func runImport(ctx *cli.Context) error {
 	routers.GlobalInit()
 	verify.CheckVersion()
 

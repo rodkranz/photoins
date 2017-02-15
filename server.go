@@ -27,6 +27,7 @@ func main() {
 		Version: VER,
 		Commands: []*cli.Command{
 			cmd.Server,
+			cmd.Import,
 		},
 	}
 
