@@ -26,7 +26,7 @@ func GetInfoImageByInstagramId(ctx *context.APIContext) {
 		return
 	}
 
-	ctx.Render(200, fmt.Sprintf("Image found [instagram_id: %v]", image.ID), image)
+	ctx.Render(200, fmt.Sprintf("Image found [instagram_id: %v]", image.ID), convert.ToImage(image))
 }
 
 func Search(ctx *context.APIContext) {
@@ -56,7 +56,7 @@ func Search(ctx *context.APIContext) {
 		"message":  "List of images found",
 		"status":   200,
 		"total":    total,
-		"resource": images,
+		"resource": convert.ToImages(images),
 	})
 }
 
